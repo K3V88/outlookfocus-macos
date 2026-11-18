@@ -1,0 +1,29 @@
+name: Build and test
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: chrome-extension/package-lock.json
+      - name: Install Chrome tooling
+        run: npm ci --prefix chrome-extension
+      - name: Install test browser
+        working-directory: chrome-extension
+        run: npx playwright install chromium
+      - name: Native, extension, and real native-host integration
+        run: ./scripts/test-all.sh
+      - name: Xcode app and XCTest target
+        run: xcodebuild -project macos/OutlookFocus.xcodeproj -scheme OutlookFocus -configuration Debug -destination 'platform=macOS' -derivedDataPath build/Xcode CODE_SIGNING_ALLOWED=NO test
+      - name: Runtime dependency audit
+        run: npm audit --prefix chrome-extension --omit=dev

@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "OutlookFocus for Chrome",
+  "version": "1.0.0",
+  "minimum_chrome_version": "120",
+  "description": "Focus an existing Outlook Web tab when the local OutlookFocus Mac app detects new mail. No email content is read.",
+  "permissions": ["nativeMessaging", "storage", "alarms"],
+  "host_permissions": [
+    "https://outlook.office.com/*",
+    "https://outlook.live.com/*",
+    "https://outlook.office365.com/*",
+    "https://outlook.cloud.microsoft/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "OutlookFocus",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "incognito": "not_allowed",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'"
+  }
+}

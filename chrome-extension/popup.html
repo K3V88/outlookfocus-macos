@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OutlookFocus</title>
+    <link rel="icon" href="icons/icon32.png" />
+    <link rel="stylesheet" href="src/popup/popup.css" />
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon48.png" width="38" height="38" alt="" />
+      <div>
+        <h1>OutlookFocus</h1>
+        <p>A little less switching.</p>
+      </div>
+      <span class="platform">MAC + CHROME</span>
+    </header>
+    <main>
+      <section class="status-card">
+        <div class="eyebrow">YOUR CONNECTION</div>
+        <p id="connection" role="status">Connecting to Mac helper…</p>
+        <dl>
+          <div>
+            <dt>Email monitoring</dt>
+            <dd id="monitoring">Unknown</dd>
+          </div>
+          <div>
+            <dt>Last email detected</dt>
+            <dd id="last-email">None yet</dd>
+          </div>
+          <div>
+            <dt>Last successful check</dt>
+            <dd id="last-check">None yet</dd>
+          </div>
+        </dl>
+      </section>
+      <label class="toggle-row"
+        ><span>Automatic focus</span
+        ><input type="checkbox" id="automatic" role="switch" disabled /><span
+          class="track"
+          aria-hidden="true"
+        ></span></label
+      ><label class="mode-label" for="mode">Focus destination</label
+      ><select id="mode" disabled>
+        <option value="desktop">Outlook Desktop</option>
+        <option value="chrome">Outlook in Chrome</option>
+        <option value="smart">Smart Mode</option>
+        <option value="notificationOnly">Notification Only</option>
+        <option value="disabled">Disabled</option>
+      </select>
+      <div class="actions">
+        <button id="desktop">Focus Outlook Desktop <span>↗</span></button
+        ><button id="chrome">Focus Outlook in Chrome <span>↗</span></button
+        ><button id="smart">Use Smart Mode <span>✦</span></button>
+      </div>
+      <div class="secondary">
+        <button id="open-web">Open Outlook Web</button
+        ><button id="settings">Open Mac Settings</button>
+      </div>
+      <button id="retry" class="retry">Retry Connection</button>
+      <p id="error" role="alert"></p>
+      <p class="note">
+        Mail stays private. The Mac app monitors your Inbox; this extension only
+        focuses tabs.
+      </p>
+    </main>
+    <footer>Local native bridge · No mail content in Chrome</footer>
+    <script type="module" src="src/popup/popup.ts"></script>
+  </body>
+</html>
