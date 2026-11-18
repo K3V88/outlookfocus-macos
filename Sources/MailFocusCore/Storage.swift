@@ -8,7 +8,7 @@ public struct AppPaths {
     self.directory =
       directory
       ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
-        "Library/Application Support/OutlookFocus", isDirectory: true)
+        "Library/Application Support/MailFocus", isDirectory: true)
   }
   public var socket: URL { directory.appendingPathComponent("bridge.sock") }
   public var sync: URL { directory.appendingPathComponent("mailbox.sync.json") }
@@ -21,7 +21,7 @@ public struct AppPaths {
       (a[.ownerAccountID] as? NSNumber)?.uint32Value == getuid()
     else {
       throw FocusFailure.invalid(
-        "OutlookFocus data directory must be a real directory owned by this user.")
+        "MailFocus data directory must be a real directory owned by this user.")
     }
     try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
   }
@@ -33,7 +33,7 @@ public protocol TokenCaching: Sendable {
   func removeAll() async throws
 }
 public actor KeychainTokenCache: TokenCaching {
-  private let service = "com.k3v88.OutlookFocus.oauth"
+  private let service = "com.k3v88.MailFocus.oauth"
   public init() {}
   private func query(_ id: String) -> [String: Any] {
     [
@@ -118,6 +118,18 @@ public actor SyncStore {
   }
 }
 public struct PreferenceStore {
+  /// Import the previous app's local settings once, without replacing newer settings.
+  /// The old identifier is retained only to locate that preferences domain.
+  public static func migrateLegacySettings(
+    defaults: UserDefaults = .standard, legacyDomain: String = "com.k3v88.OutlookFocus"
+  ) {
+    guard !defaults.bool(forKey: "mailFocusMigrationComplete") else { return }
+    let legacy = defaults.persistentDomain(forName: legacyDomain) ?? [:]
+    for key in ["preferences", "appleMailAddress"] where defaults.object(forKey: key) == nil {
+      if let value = legacy[key] { defaults.set(value, forKey: key) }
+    }
+    defaults.set(true, forKey: "mailFocusMigrationComplete")
+  }
   private let defaults: UserDefaults
   public init(defaults: UserDefaults = .standard) { self.defaults = defaults }
   public func load() -> Preferences {
@@ -131,5 +143,49 @@ public struct PreferenceStore {
     var p = prefs
     p.validate()
     defaults.set(try JSONEncoder().encode(p), forKey: "preferences")
+  }
+}
+
+/// Store the selected mailbox independently of deferred UserDefaults writes and UI drafts.
+public struct MailAccountStore: Sendable {
+  private struct Account: Codable { let email: String }
+  public let url: URL
+  public init(url: URL = AppPaths().directory.appendingPathComponent("mail-account.json")) {
+    self.url = url
+  }
+  public static func normalizedEmail(_ input: String) -> String? {
+    let value = input.trimmingCharacters(in: .whitespacesAndNewlines)
+    let parts = value.split(separator: "@", omittingEmptySubsequences: false)
+    guard parts.count == 2, !parts[0].isEmpty, !parts[1].isEmpty,
+      !value.contains(where: { $0.isWhitespace || $0.isNewline }),
+      value.rangeOfCharacter(from: .controlCharacters) == nil,
+      !value.contains("<"), !value.contains(">")
+    else { return nil }
+    return value
+  }
+  public func load() throws -> String? {
+    guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+    let account = try JSONDecoder().decode(Account.self, from: Data(contentsOf: url))
+    guard let email = Self.normalizedEmail(account.email) else {
+      throw FocusFailure.invalid(
+        "The saved email address is invalid. Enter it again in Monitoring.")
+    }
+    return email
+  }
+  @discardableResult public func save(_ input: String) throws -> String {
+    guard let email = Self.normalizedEmail(input) else {
+      throw FocusFailure.invalid("Enter a complete email address before saving.")
+    }
+    try AppPaths(directory: url.deletingLastPathComponent()).prepare()
+    try JSONEncoder().encode(Account(email: email)).write(to: url, options: .atomic)
+    try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+    return email
+  }
+  public func loadOrMigrate(defaults: UserDefaults = .standard) throws -> String? {
+    if let saved = try load() { return saved }
+    guard let old = defaults.string(forKey: "appleMailAddress"),
+      Self.normalizedEmail(old) != nil
+    else { return nil }
+    return try save(old)
   }
 }

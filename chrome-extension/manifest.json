@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "OutlookFocus for Chrome",
+  "name": "MailFocus for Chrome",
   "version": "1.0.0",
   "minimum_chrome_version": "120",
-  "description": "Focus an existing Outlook Web tab when the local OutlookFocus Mac app detects new mail. No email content is read.",
+  "description": "Focus an existing Outlook Web tab when the local MailFocus Mac app detects new mail. No email content is read.",
   "permissions": ["nativeMessaging", "storage", "alarms"],
   "host_permissions": [
     "https://outlook.office.com/*",
@@ -17,7 +17,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "OutlookFocus",
+    "default_title": "MailFocus",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

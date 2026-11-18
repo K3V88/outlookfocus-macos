@@ -1,10 +1,10 @@
 import Darwin
 import Foundation
-import OutlookFocusCore
+import MailFocusCore
 
 signal(SIGPIPE, SIG_IGN)
 let paths = AppPaths(
-  directory: ProcessInfo.processInfo.environment["OUTLOOKFOCUS_TEST_SUPPORT_DIR"].map {
+  directory: ProcessInfo.processInfo.environment["MAILFOCUS_TEST_SUPPORT_DIR"].map {
     URL(fileURLWithPath: $0)
   })
 do {
@@ -50,7 +50,7 @@ do {
 } catch {
   var payload = Payload()
   payload.connected = false
-  payload.error = "OutlookFocus host unavailable. Open the Mac app and verify host registration."
+  payload.error = "MailFocus host unavailable. Open the Mac app and verify host registration."
   if let data = try? Envelope(.connectionStatus, payload: payload).encoded() {
     try? Framing.write(data, fd: STDOUT_FILENO)
   }

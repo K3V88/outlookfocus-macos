@@ -76,7 +76,7 @@ public enum LocalSocket {
     if result != 0 {
       Darwin.close(fd)
       throw FocusFailure.unavailable(
-        "OutlookFocus is not running. Open the macOS app, then retry connection.")
+        "MailFocus is not running. Open the macOS app, then retry connection.")
     }
     var peer: uid_t = 0
     var group: gid_t = 0
@@ -121,7 +121,7 @@ public final class BridgeServer: @unchecked Sendable {
     return listener == fd
   }
   private let paths: AppPaths
-  private let queue = DispatchQueue(label: "OutlookFocus.bridge", attributes: .concurrent)
+  private let queue = DispatchQueue(label: "MailFocus.bridge", attributes: .concurrent)
   private let lock = NSLock()
   private var listener: Int32 = -1
   private var ownsSocket = false
@@ -135,7 +135,7 @@ public final class BridgeServer: @unchecked Sendable {
     if FileManager.default.fileExists(atPath: paths.socket.path) {
       if let old = try? LocalSocket.connect(path: paths.socket.path) {
         Darwin.close(old)
-        throw FocusFailure.unavailable("Another OutlookFocus instance is already running.")
+        throw FocusFailure.unavailable("Another MailFocus instance is already running.")
       }
       let a = try FileManager.default.attributesOfItem(atPath: paths.socket.path)
       guard a[.type] as? FileAttributeType == .typeSocket,

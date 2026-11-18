@@ -1,5 +1,5 @@
 import { HOST, parseEnvelope, type Envelope } from "../shared/protocol";
-export const RECONNECT = "outlookfocus.reconnect";
+export const RECONNECT = "mailfocus.reconnect";
 export function retryDelay(attempt: number): number {
   return Math.min(5, 0.5 * 2 ** Math.max(0, attempt - 1));
 }
@@ -131,7 +131,7 @@ export class NativeClient {
       await this.saveRetries();
       this.state(
         false,
-        "Connection retries paused. Open OutlookFocus on your Mac, then click Retry Connection.",
+        "Connection retries paused. Open MailFocus on your Mac, then click Retry Connection.",
       );
       return;
     }

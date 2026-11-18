@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import OutlookFocusCore
+@testable import MailFocusCore
 
 final class SyncTests: XCTestCase {
   var folder: URL!
@@ -10,7 +10,7 @@ final class SyncTests: XCTestCase {
     "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages/delta?$deltatoken=test"
   override func setUpWithError() throws {
     folder = FileManager.default.temporaryDirectory.appendingPathComponent(
-      "outlookfocus-test-" + UUID().uuidString)
+      "mailfocus-test-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     store = SyncStore(url: folder.appendingPathComponent("test.sync.json"))
   }

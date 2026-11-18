@@ -18,7 +18,7 @@ xcuserdata/
 *.log
 *.sync.json*
 .swiftpm/
-macos/OutlookFocus.xcodeproj/project.xcworkspace/
+macos/MailFocus.xcodeproj/project.xcworkspace/
 
 __pycache__/
 *.pyc

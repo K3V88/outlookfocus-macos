@@ -55,8 +55,8 @@ public enum FocusPolicy {
     func allowed(_ target: FocusTarget) -> FocusDecision {
       if target == .desktop {
         return (a.desktopRunning || (a.desktopInstalled && p.launchOutlook))
-          ? FocusDecision(.desktop, "Use Outlook Desktop.")
-          : FocusDecision(nil, "Outlook is unavailable or automatic launching is disabled.")
+          ? FocusDecision(.desktop, "Use Apple Mail.")
+          : FocusDecision(nil, "Apple Mail is unavailable or automatic launching is disabled.")
       }
       return a.chromeConnected && (a.webTabOpen || p.openWebIfMissing)
         ? FocusDecision(.chrome, "Use the connected Chrome extension.")
@@ -73,5 +73,14 @@ public enum FocusPolicy {
       return allowed(p.fallback)
     case .disabled, .notificationOnly: return FocusDecision(nil, "No activation.")
     }
+  }
+}
+
+/// Manual tests and failed attempts must not suppress subsequent incoming mail.
+public struct FocusActivationHistory: Sendable {
+  public private(set) var lastAutomaticActivation: Date?
+  public init() {}
+  public mutating func recordSuccess(manual: Bool, at date: Date = Date()) {
+    if !manual { lastAutomaticActivation = date }
   }
 }

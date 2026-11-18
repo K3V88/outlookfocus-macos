@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { resolve, join } from "node:path";
 const root = resolve("..");
 export async function harness() {
-  const temporary = await mkdtemp("/private/tmp/outlookfocus-browser-");
+  const temporary = await mkdtemp("/private/tmp/mailfocus-browser-");
   const profile = join(temporary, "profile"),
     support = join(temporary, "support");
   await mkdir(support, { mode: 0o700 });
@@ -48,13 +48,13 @@ export async function harness() {
       "--enable-unsafe-extension-debugging",
       "--host-resolver-rules=MAP * ~NOTFOUND",
     ],
-    env: { ...process.env, OUTLOOKFOCUS_TEST_SUPPORT_DIR: support },
+    env: { ...process.env, MAILFOCUS_TEST_SUPPORT_DIR: support },
   });
   // No Microsoft account/network requests: tabs are deterministic browser fixtures.
   await context.route("https://**/*", (route) =>
     route.fulfill({
       contentType: "text/html",
-      body: "<!doctype html><title>OutlookFocus integration fixture</title><h1>Public test fixture, no email content</h1>",
+      body: "<!doctype html><title>MailFocus integration fixture</title><h1>Public test fixture, no email content</h1>",
     }),
   );
   const cdp = await context.browser().newBrowserCDPSession();
@@ -69,11 +69,11 @@ export async function harness() {
   );
   await mkdir(join(profile, "NativeMessagingHosts"), { recursive: true });
   await writeFile(
-    join(profile, "NativeMessagingHosts/com.k3v88.outlookfocus.host.json"),
+    join(profile, "NativeMessagingHosts/com.k3v88.mailfocus.host.json"),
     JSON.stringify({
-      name: "com.k3v88.outlookfocus.host",
-      description: "OutlookFocus isolated integration fixture",
-      path: resolve(root, ".build/debug/OutlookFocusNativeHost"),
+      name: "com.k3v88.mailfocus.host",
+      description: "MailFocus isolated integration fixture",
+      path: resolve(root, ".build/debug/MailFocusNativeHost"),
       type: "stdio",
       allowed_origins: [origin],
     }),

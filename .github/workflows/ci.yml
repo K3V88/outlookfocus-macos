@@ -24,6 +24,6 @@ jobs:
       - name: Native, extension, and real native-host integration
         run: ./scripts/test-all.sh
       - name: Xcode app and XCTest target
-        run: xcodebuild -project macos/OutlookFocus.xcodeproj -scheme OutlookFocus -configuration Debug -destination 'platform=macOS' -derivedDataPath build/Xcode CODE_SIGNING_ALLOWED=NO test
+        run: xcodebuild -project macos/MailFocus.xcodeproj -scheme MailFocus -configuration Debug -destination 'platform=macOS' -derivedDataPath build/Xcode CODE_SIGNING_ALLOWED=NO test
       - name: Runtime dependency audit
         run: npm audit --prefix chrome-extension --omit=dev

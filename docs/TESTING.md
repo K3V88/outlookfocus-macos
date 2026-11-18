@@ -22,7 +22,7 @@ The Xcode project and command-line packaged `.app` are both build targets. Local
 npm ci --prefix chrome-extension
 cd chrome-extension && npx playwright install chromium && cd ..
 ./scripts/test-all.sh
-xcodebuild -project macos/OutlookFocus.xcodeproj -scheme OutlookFocus \
+xcodebuild -project macos/MailFocus.xcodeproj -scheme MailFocus \
   -configuration Debug -destination 'platform=macOS' \
   -derivedDataPath build/Xcode CODE_SIGNING_ALLOWED=NO test
 ```

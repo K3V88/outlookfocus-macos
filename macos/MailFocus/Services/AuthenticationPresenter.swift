@@ -1,6 +1,6 @@
 import AppKit
 import AuthenticationServices
-import OutlookFocusCore
+import MailFocusCore
 
 @MainActor
 final class AuthenticationPresenter: NSObject, ASWebAuthenticationPresentationContextProviding {

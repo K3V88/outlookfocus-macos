@@ -23,7 +23,7 @@ public struct Preferences: Codable, Equatable, Sendable {
   public var onlyWhenNotFrontmost = true
   public var importantOnly = false
   public var pollInterval = 30
-  public var cooldown: Double = 60
+  public var cooldown: Double = 0
   public var mode = FocusMode.smart
   public var fallback = FocusTarget.desktop
   public var quietEnabled = false
@@ -36,7 +36,7 @@ public struct Preferences: Codable, Equatable, Sendable {
   public init() {}
   public mutating func validate() {
     if ![15, 30, 60, 120, 300].contains(pollInterval) { pollInterval = 30 }
-    cooldown = cooldown.isFinite ? min(600, max(0, cooldown)) : 60
+    cooldown = cooldown.isFinite ? min(600, max(0, cooldown)) : 0
     quietStart = min(1439, max(0, quietStart))
     quietEnd = min(1439, max(0, quietEnd))
     if !WebDestination.isAllowed(preferredURL) { preferredURL = "https://outlook.office.com/mail/" }
@@ -86,4 +86,37 @@ public enum InternetDate {
     return f.date(from: text)
   }
   public static func string(_ date: Date) -> String { ISO8601DateFormatter().string(from: date) }
+}
+
+public struct AppleMailMessage: Equatable, Sendable {
+  public let id: String
+  public let receivedAt: Date
+  public init(id: String, receivedAt: Date) {
+    self.id = id
+    self.receivedAt = receivedAt
+  }
+}
+
+/// A new session/account establishes a baseline; read/unread changes never trigger focus.
+public struct AppleMailInboxTracker: Sendable {
+  private var account: String?
+  private var startedAt: Date?
+  private var seen: Set<String> = []
+  public init() {}
+  public mutating func ingest(account: String, messages: [AppleMailMessage], now: Date = Date())
+    -> [AppleMailMessage]
+  {
+    guard self.account == account, let startedAt else {
+      self.account = account
+      self.startedAt = now
+      seen = Set(messages.map(\.id))
+      return []
+    }
+    var arrived: [AppleMailMessage] = []
+    for message in messages where seen.insert(message.id).inserted {
+      // An old message moved back to Inbox is not a new delivery.
+      if message.receivedAt >= startedAt { arrived.append(message) }
+    }
+    return arrived
+  }
 }

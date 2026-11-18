@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import OutlookFocusCore
+@testable import MailFocusCore
 
 actor MemoryTokens: TokenCaching {
   var value: TokenRecord?
@@ -59,7 +59,7 @@ final class CoreTests: XCTestCase {
     ] { XCTAssertFalse(WebDestination.isAllowed(value)) }
   }
   func testPreferencePersistence() throws {
-    let suite = "OutlookFocus-tests-" + UUID().uuidString
+    let suite = "MailFocus-tests-" + UUID().uuidString
     let defaults = UserDefaults(suiteName: suite)!
     defer { defaults.removePersistentDomain(forName: suite) }
     let store = PreferenceStore(defaults: defaults)
@@ -79,7 +79,7 @@ final class CoreTests: XCTestCase {
     p.preferredURL = "https://evil.invalid/"
     p.validate()
     XCTAssertEqual(p.pollInterval, 30)
-    XCTAssertEqual(p.cooldown, 60)
+    XCTAssertEqual(p.cooldown, 0)
     XCTAssertEqual(p.quietStart, 0)
     XCTAssertEqual(p.quietEnd, 1439)
     XCTAssertTrue(WebDestination.isAllowed(p.preferredURL))
@@ -141,6 +141,7 @@ final class CoreTests: XCTestCase {
   }
   func testCooldownAndImportance() {
     var p = Preferences()
+    p.cooldown = 60
     p.enabled = true
     p.mode = .desktop
     let a = FocusAvailability(
@@ -377,5 +378,129 @@ final class BridgeOwnershipTests: XCTestCase {
     XCTAssertTrue(FileManager.default.fileExists(atPath: paths.socket.path))
     let connection = try LocalSocket.connect(path: paths.socket.path)
     close(connection)
+  }
+}
+
+final class AppleMailInboxTrackerTests: XCTestCase {
+  func testBaselineNewMailAndDuplicates() {
+    var tracker = AppleMailInboxTracker()
+    let start = Date(timeIntervalSince1970: 1000)
+    let old = AppleMailMessage(id: "old", receivedAt: start.addingTimeInterval(-100))
+    let new = AppleMailMessage(id: "new", receivedAt: start.addingTimeInterval(10))
+    XCTAssertEqual(tracker.ingest(account: "a", messages: [old], now: start), [])
+    XCTAssertEqual(tracker.ingest(account: "a", messages: [old, new, new]), [new])
+    XCTAssertEqual(tracker.ingest(account: "a", messages: [old, new]), [])
+    XCTAssertEqual(tracker.ingest(account: "a", messages: []), [])
+    XCTAssertEqual(tracker.ingest(account: "a", messages: [new]), [])
+  }
+  func testOldMessagesMovedIntoInboxDoNotActivate() {
+    var tracker = AppleMailInboxTracker()
+    let start = Date(timeIntervalSince1970: 1000)
+    _ = tracker.ingest(account: "a", messages: [], now: start)
+    XCTAssertEqual(
+      tracker.ingest(
+        account: "a",
+        messages: [AppleMailMessage(id: "moved", receivedAt: start.addingTimeInterval(-10))]), [])
+  }
+  func testAccountChangesAndResetEstablishNewBaseline() {
+    var tracker = AppleMailInboxTracker()
+    let start = Date(timeIntervalSince1970: 1000)
+    _ = tracker.ingest(account: "a", messages: [], now: start)
+    let message = AppleMailMessage(id: "b1", receivedAt: start.addingTimeInterval(10))
+    XCTAssertEqual(
+      tracker.ingest(account: "b", messages: [message], now: start.addingTimeInterval(20)), [])
+    tracker = AppleMailInboxTracker()
+    XCTAssertEqual(
+      tracker.ingest(account: "b", messages: [message], now: start.addingTimeInterval(30)), [])
+  }
+}
+
+final class SettingsMigrationTests: XCTestCase {
+  func testRenameImportsSettingsOnceWithoutReplacingNewValues() throws {
+    let previousName = "MailFocusTests.previous.\(UUID().uuidString)"
+    let currentName = "MailFocusTests.current.\(UUID().uuidString)"
+    let previous = try XCTUnwrap(UserDefaults(suiteName: previousName))
+    let current = try XCTUnwrap(UserDefaults(suiteName: currentName))
+    defer {
+      previous.removePersistentDomain(forName: previousName)
+      current.removePersistentDomain(forName: currentName)
+    }
+    var preferences = Preferences()
+    preferences.cooldown = 120
+    try PreferenceStore(defaults: previous).save(preferences)
+    previous.set("previous@example.com", forKey: "appleMailAddress")
+    current.set("current@example.com", forKey: "appleMailAddress")
+    PreferenceStore.migrateLegacySettings(defaults: current, legacyDomain: previousName)
+    XCTAssertEqual(PreferenceStore(defaults: current).load().cooldown, 120)
+    XCTAssertEqual(current.string(forKey: "appleMailAddress"), "current@example.com")
+    current.removeObject(forKey: "appleMailAddress")
+    PreferenceStore.migrateLegacySettings(defaults: current, legacyDomain: previousName)
+    XCTAssertNil(current.string(forKey: "appleMailAddress"))
+  }
+}
+
+final class AutomaticMailActivationTests: XCTestCase {
+  func testManualActivationDoesNotSuppressNextNewMail() {
+    var history = FocusActivationHistory()
+    let now = Date()
+    history.recordSuccess(manual: true, at: now)
+    var p = Preferences()
+    p.enabled = true
+    p.mode = .desktop
+    p.cooldown = 60
+    let availability = FocusAvailability(
+      desktopInstalled: true, desktopRunning: true, chromeConnected: false, webTabOpen: false)
+    XCTAssertEqual(
+      FocusPolicy.decide(
+        preferences: p, availability: availability, important: true,
+        lastAttempt: history.lastAutomaticActivation, now: now.addingTimeInterval(1)
+      ).target, .desktop)
+    history.recordSuccess(manual: false, at: now)
+    XCTAssertNil(
+      FocusPolicy.decide(
+        preferences: p, availability: availability, important: true,
+        lastAttempt: history.lastAutomaticActivation, now: now.addingTimeInterval(1)
+      ).target)
+    p.cooldown = 0
+    XCTAssertEqual(
+      FocusPolicy.decide(
+        preferences: p, availability: availability, important: true,
+        lastAttempt: history.lastAutomaticActivation, now: now.addingTimeInterval(1)
+      ).target, .desktop)
+  }
+}
+
+final class MailAccountPersistenceTests: XCTestCase {
+  func testEmailSurvivesStoreRecreationAndRejectsTransientEmptyEdits() throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let url = directory.appendingPathComponent("mail-account.json")
+    let firstLaunch = MailAccountStore(url: url)
+    XCTAssertEqual(try firstLaunch.save("  me@example.ch \n"), "me@example.ch")
+    let nextLaunch = MailAccountStore(url: url)
+    XCTAssertEqual(try nextLaunch.load(), "me@example.ch")
+    XCTAssertThrowsError(try nextLaunch.save(""))
+    XCTAssertThrowsError(try nextLaunch.save("me@"))
+    XCTAssertThrowsError(try nextLaunch.save("me@example.ch\ninjected"))
+    XCTAssertEqual(try MailAccountStore(url: url).load(), "me@example.ch")
+    let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+    XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o600)
+  }
+  func testImportsOldEmailOnceAndFileWinsOverStaleDefaults() throws {
+    let name = "MailFocusTests.email.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer {
+      defaults.removePersistentDomain(forName: name)
+      try? FileManager.default.removeItem(at: directory)
+    }
+    defaults.set("original@example.ch", forKey: "appleMailAddress")
+    let url = directory.appendingPathComponent("mail-account.json")
+    let store = MailAccountStore(url: url)
+    XCTAssertEqual(try store.loadOrMigrate(defaults: defaults), "original@example.ch")
+    _ = try store.save("updated@example.ch")
+    defaults.set("", forKey: "appleMailAddress")
+    XCTAssertEqual(
+      try MailAccountStore(url: url).loadOrMigrate(defaults: defaults), "updated@example.ch")
   }
 }

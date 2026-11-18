@@ -2,9 +2,9 @@ import AppKit
 import Foundation
 
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-let assets = root.appendingPathComponent("macos/OutlookFocus/Assets.xcassets/AppIcon.appiconset")
+let assets = root.appendingPathComponent("macos/MailFocus/Assets.xcassets/AppIcon.appiconset")
 let chrome = root.appendingPathComponent("chrome-extension/public/icons")
-let iconset = root.appendingPathComponent("build/OutlookFocus.iconset")
+let iconset = root.appendingPathComponent("build/MailFocus.iconset")
 for dir in [assets, chrome, iconset] {
   try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 }
@@ -70,4 +70,4 @@ for size in [16, 32, 48, 128] {
 let info: [String: Any] = ["images": images, "info": ["author": "xcode", "version": 1]]
 try JSONSerialization.data(withJSONObject: info, options: [.prettyPrinted, .sortedKeys]).write(
   to: assets.appendingPathComponent("Contents.json"))
-print("Original OutlookFocus icons generated.")
+print("Original MailFocus icons generated.")

@@ -1,14 +1,14 @@
 // swift-tools-version: 5.9
 import PackageDescription
-let package = Package(name: "OutlookFocus", platforms: [.macOS(.v14)], products: [
- .library(name: "OutlookFocusCore", targets: ["OutlookFocusCore"]),
- .executable(name: "OutlookFocus", targets: ["OutlookFocusApp"]),
- .executable(name: "OutlookFocusNativeHost", targets: ["OutlookFocusNativeHost"]),
+let package = Package(name: "MailFocus", platforms: [.macOS(.v14)], products: [
+ .library(name: "MailFocusCore", targets: ["MailFocusCore"]),
+ .executable(name: "MailFocus", targets: ["MailFocusApp"]),
+ .executable(name: "MailFocusNativeHost", targets: ["MailFocusNativeHost"]),
  .executable(name: "BridgeFixture", targets: ["BridgeFixture"])
 ], targets: [
- .target(name: "OutlookFocusCore"),
- .executableTarget(name: "OutlookFocusApp", dependencies: ["OutlookFocusCore"], path: "macos/OutlookFocus", exclude: ["Info.plist", "Assets.xcassets"]),
- .executableTarget(name: "OutlookFocusNativeHost", dependencies: ["OutlookFocusCore"], path: "native-messaging/host"),
- .executableTarget(name: "BridgeFixture", dependencies: ["OutlookFocusCore"], path: "Tests/BridgeFixture"),
- .testTarget(name: "OutlookFocusTests", dependencies: ["OutlookFocusCore"], path: "macos/OutlookFocusTests")
+ .target(name: "MailFocusCore"),
+ .executableTarget(name: "MailFocusApp", dependencies: ["MailFocusCore"], path: "macos/MailFocus", exclude: ["Info.plist", "Assets.xcassets"]),
+ .executableTarget(name: "MailFocusNativeHost", dependencies: ["MailFocusCore"], path: "native-messaging/host"),
+ .executableTarget(name: "BridgeFixture", dependencies: ["MailFocusCore"], path: "Tests/BridgeFixture"),
+ .testTarget(name: "MailFocusTests", dependencies: ["MailFocusCore"], path: "macos/MailFocusTests")
 ])

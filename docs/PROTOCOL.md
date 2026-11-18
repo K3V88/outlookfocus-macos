@@ -1,6 +1,6 @@
 # Native protocol v1
 
-The macOS app and native host are separate processes. Chrome starts the host only after the extension opens `runtime.connectNative("com.k3v88.outlookfocus.host")`. That persistent port keeps the MV3 worker alive while connected. On disconnect the extension uses alarms at 30s, 60s, 120s, 240s and then up to 300s, stopping after eight scheduled automatic retries. Retry counters, stop state and next-attempt deadlines survive worker suspension in session storage. Waking the worker early does not bypass the saved backoff. Retry Connection resets the attempt counter. No polling of Microsoft Graph occurs in Chrome.
+The macOS app and native host are separate processes. Chrome starts the host only after the extension opens `runtime.connectNative("com.k3v88.mailfocus.host")`. That persistent port keeps the MV3 worker alive while connected. On disconnect the extension uses alarms at 30s, 60s, 120s, 240s and then up to 300s, stopping after eight scheduled automatic retries. Retry counters, stop state and next-attempt deadlines survive worker suspension in session storage. Waking the worker early does not bypass the saved backoff. Retry Connection resets the attempt counter. No polling of Microsoft Graph occurs in Chrome.
 
 ## Framing and validation
 
@@ -51,6 +51,6 @@ Duplicate inbound events are suppressed. Chrome retains up to 128 focus results 
 
 The installer accepts the **actual** Chrome extension ID, verifies the executable, and generates the manifest and private origin list. No fixed development identity is guessed. Tests obtain the real ID through Chrome DevTools and register only inside a temporary browser user-data directory.
 
-`OUTLOOKFOCUS_TEST_SUPPORT_DIR` is an explicit test-process environment override for the host's local support directory. It cannot be set through a native message. Production app storage uses the normal user Application Support directory. The test-only BridgeFixture executable accepts its temporary directory as an argument and never authenticates, polls Graph, launches applications or ships in the `.app` bundle.
+`MAILFOCUS_TEST_SUPPORT_DIR` is an explicit test-process environment override for the host's local support directory. It cannot be set through a native message. Production app storage uses the normal user Application Support directory. The test-only BridgeFixture executable accepts its temporary directory as an argument and never authenticates, polls Graph, launches applications or ships in the `.app` bundle.
 
 Reference: [Chrome native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging).

@@ -1,6 +1,6 @@
 import Darwin
 import Foundation
-import OutlookFocusCore
+import MailFocusCore
 
 // Explicit test-only executable. No Graph, authentication, or application activation.
 guard CommandLine.arguments.count == 2 else {

@@ -86,7 +86,7 @@ public struct PKCE: Sendable {
   }
 }
 public actor MicrosoftAuth {
-  public static let redirectURI = "msauth.com.k3v88.OutlookFocus://auth"
+  public static let redirectURI = "msauth.com.k3v88.MailFocus://auth"
   public static let scopes =
     "openid profile offline_access https://graph.microsoft.com/Mail.ReadBasic"
   private let transport: any HTTPTransport

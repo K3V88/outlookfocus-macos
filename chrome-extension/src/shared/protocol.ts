@@ -42,7 +42,7 @@ export interface Envelope {
   timestamp: string;
   payload: Payload;
 }
-export const HOST = "com.k3v88.outlookfocus.host";
+export const HOST = "com.k3v88.mailfocus.host";
 export const HOSTS = [
   "outlook.office.com",
   "outlook.live.com",

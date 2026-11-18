@@ -270,7 +270,7 @@ chrome.runtime.onMessage.addListener(
         respond({
           ok: false,
           error:
-            error instanceof Error ? error.message : "OutlookFocus failed.",
+            error instanceof Error ? error.message : "MailFocus failed.",
         }),
       );
     return true;

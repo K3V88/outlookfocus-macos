@@ -3,7 +3,7 @@
 import json,os,selectors,struct,subprocess,tempfile,time,uuid
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
-binary=root/'.build/debug/OutlookFocusNativeHost';fixture=root/'.build/debug/BridgeFixture'
+binary=root/'.build/debug/MailFocusNativeHost';fixture=root/'.build/debug/BridgeFixture'
 # This is a synthetic origin only for a non-browser protocol fixture, never an installed extension ID.
 origin='chrome-extension://'+'a'*32+'/'
 def send(process,message):
@@ -16,10 +16,10 @@ def receive(process):
  size=struct.unpack('=I',prefix)[0];assert 0<size<=65536
  data=process.stdout.read(size);assert len(data)==size
  return json.loads(data)
-with tempfile.TemporaryDirectory(prefix='outlookfocus-wire-',dir='/private/tmp') as temporary:
+with tempfile.TemporaryDirectory(prefix='mailfocus-wire-',dir='/private/tmp') as temporary:
  support=Path(temporary);support.chmod(0o700)
  (support/'allowed-origins.json').write_text(json.dumps([origin]));(support/'allowed-origins.json').chmod(0o600)
- env={**os.environ,'OUTLOOKFOCUS_TEST_SUPPORT_DIR':str(support)}
+ env={**os.environ,'MAILFOCUS_TEST_SUPPORT_DIR':str(support)}
  bridge=subprocess.Popen([str(fixture),str(support)],stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
  try:
   assert bridge.stderr.readline().strip()==b'BRIDGE_READY'
